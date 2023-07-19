@@ -79,7 +79,7 @@ def create_task():
 def card_message():
     try:
         LOGGER.info("card message %s", request.json)
-        value = request.request.json.get("value", "{}")
+        value = request.json.get("value", "{}")
         if not value:
             return jsonify({})
     

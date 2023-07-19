@@ -79,7 +79,7 @@ class DingDingAPI(CommonAPIWrapper):
             "openConversationId" : open_conversation_id,
             "receiverUserIdList" : [],
             "outTrackId" : track_id,
-            "conversationType" : chat_type,
+            "conversationType" : 0 if chat_type == "1" else 1,
             "callbackRouteKey" : call_back_route_key,
             "cardData" : {
                 "cardParamMap" : card_params,
