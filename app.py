@@ -14,7 +14,7 @@ from utils.variables import LOGGER
 from utils.dingding_api import DingDingAPI
 
 from model import Task, initialize_db
-
+init_env()
 app = Flask(__name__)
 
 @app.before_request
