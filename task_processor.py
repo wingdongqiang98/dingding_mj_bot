@@ -20,7 +20,7 @@ from utils.func_utils import error_cap
 threads = []
 
 
-api = DingDingAPI(os.getenv("DINGTALK_APPKEY"), os.getenv("DINGTALK_APPSECRET"), os.getenv("DINGTALK_ROBOT_CODE"))
+dingding_api = DingDingAPI(os.getenv("DINGTALK_APPKEY"), os.getenv("DINGTALK_APPSECRET"), os.getenv("DINGTALK_ROBOT_CODE"))
 template_id = os.getenv("DINGTALK_TEMPLATE_ID")
 server_ip = os.getenv("SEVER_IP")
 MAX_THREAD_NUM = int(os.getenv("MAX_THREAD_NUM", 5))
@@ -37,18 +37,11 @@ def get_random_string(length):
     return random_string
 
 
-@error_cap()
-def send_text_msg(msg, user):
-    LOGGER.info("will send msg %s to user %s", msg, user)
-    print("********", repr(msg), repr(user))
-    access_token = feishu_api.get_tenant_access_token()["tenant_access_token"]
-    feishu_api.set_access_token(access_token)
-    feishu_api.send_message(user, json.dumps({"text": msg}), msg_type="text")
-
 
 def process_task(task_params, task_type, task_id, user_id, chat_type, chat_id, user_nick):
     try:
         init_env(filename="dingding_mj_bot_thread.log")
+        api = MJApi(os.getenv("MJ_TASK_APIKEY"))
         Task.update(status="schedule").where(Task.id == task_id).execute()
         task_params = json.loads(task_params)
         LOGGER.info("task %s params %s", task_id, task_params)
@@ -64,34 +57,34 @@ def process_task(task_params, task_type, task_id, user_id, chat_type, chat_id, u
             if time.time() - start_time > timeout:
                 Task.update(status="error", desc="timeout").where(Task.id == task_id).execute()
                 if chat_type == "1":
-                    api.batch_send_message([user_id],json.dumps({"content": "任务超时！"}), msg_type="sampleText")
+                    dingding_api.batch_send_message([user_id],json.dumps({"content": "任务超时！"}), msg_type="sampleText")
                 else:
-                    api.send_group_message(chat_id, json.dumps({"content": "任务超时！"}), msg_type="sampleText")
+                    dingding_api.send_group_message(chat_id, json.dumps({"content": "任务超时！"}), msg_type="sampleText")
                 break
             result = api.query_task(mj_task_id)
             status = result["data"]["status"]
             Task.update(status=status).where(Task.id == task_id).execute()
             if result["data"]["status"] == "finished":
-                if api.token_is_expired:
-                    result = api.get_assess_token()
-                    api.set_access_token(result["accessToken"], time.time() + 7100)
+                if dingding_api.token_is_expired:
+                    result = dingding_api.get_assess_token()
+                    dingding_api.set_access_token(result["accessToken"], time.time() + 7100)
                 image_url = result["data"]["image_url"]
                 
                 if task_type in ["upscale", "variation"]:
                     if chat_type == "1":
-                        api.batch_send_message([user_id],json.dumps({"photoURL": image_url}))
+                        dingding_api.batch_send_message([user_id],json.dumps({"photoURL": image_url}))
                     else:
-                        api.send_group_message(chat_id, json.dumps({"photoURL": image_url}))
+                        dingding_api.send_group_message(chat_id, json.dumps({"photoURL": image_url}))
                 else:
                     if CACHE_INFO.get("CALL_BACK_ID", None) is None:
                         callback_id = get_random_string(16)
                         CACHE_INFO["CALL_BACK_ID"] = callback_id
-                        api.register_call_back(f"http://{server_ip}/event_callback", callback_id)
+                        dingding_api.register_call_back(f"http://{server_ip}/event_callback", callback_id)
                     track_id = str(int(time.time()*1000))
                     if chat_type == "1":
-                        api.send_card_message(template_id, chat_id, track_id, CACHE_INFO["CALL_BACK_ID"], {"image": image_url, "task_id": mj_task_id}, {}, json.dumps({user_id: user_nick}), chat_type=chat_type, receive_user_ids=[user_id])
+                        dingding_api.send_card_message(template_id, chat_id, track_id, CACHE_INFO["CALL_BACK_ID"], {"image": image_url, "task_id": mj_task_id}, {}, json.dumps({user_id: user_nick}), chat_type=chat_type, receive_user_ids=[user_id])
                     else:
-                        api.send_card_message(template_id, chat_id, track_id, CACHE_INFO["CALL_BACK_ID"], {"image": image_url, "task_id": mj_task_id}, {}, json.dumps({user_id: user_nick}), chat_type=chat_type)
+                        dingding_api.send_card_message(template_id, chat_id, track_id, CACHE_INFO["CALL_BACK_ID"], {"image": image_url, "task_id": mj_task_id}, {}, json.dumps({user_id: user_nick}), chat_type=chat_type)
                 break
             if result["data"]["status"] == "error":
                 msg = result.get("msg", "")
