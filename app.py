@@ -94,7 +94,6 @@ def card_message():
             Task.create(user_id=user_id, user_nick=parent_task.user_nick, chat_id=chat_id, message_id="", chat_type=parent_task.chat_type, params=json.dumps(param), status="init",
             task_type="upscale")
         elif task_action and task_action.startswith("v"):
-            
             Task.create(user_id=user_id, user_nick=parent_task.user_nick, chat_id=chat_id, message_id="", chat_type=parent_task.chat_type, params=json.dumps(param), status="init",
             task_type="variation")
         else:

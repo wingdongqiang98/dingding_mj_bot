@@ -89,9 +89,9 @@ def process_task(task_params, task_type, task_id, user_id, chat_type, chat_id, u
                         api.register_call_back(f"http://{server_ip}/event_callback", callback_id)
                     track_id = str(int(time.time()*1000))
                     if chat_type == "1":
-                        api.send_card_message(template_id, chat_id, track_id, CACHE_INFO["CALL_BACK_ID"], {"image": image_url, "task_id": task_id}, {}, json.dumps({user_id: user_nick}), chat_type=chat_type, receive_user_ids=[user_id])
+                        api.send_card_message(template_id, chat_id, track_id, CACHE_INFO["CALL_BACK_ID"], {"image": image_url, "task_id": mj_task_id}, {}, json.dumps({user_id: user_nick}), chat_type=chat_type, receive_user_ids=[user_id])
                     else:
-                        api.send_card_message(template_id, chat_id, track_id, CACHE_INFO["CALL_BACK_ID"], {"image": image_url, "task_id": task_id}, {}, json.dumps({user_id: user_nick}), chat_type=chat_type)
+                        api.send_card_message(template_id, chat_id, track_id, CACHE_INFO["CALL_BACK_ID"], {"image": image_url, "task_id": mj_task_id}, {}, json.dumps({user_id: user_nick}), chat_type=chat_type)
                 break
             if result["data"]["status"] == "error":
                 msg = result.get("msg", "")
@@ -123,8 +123,8 @@ def process_tasks():
                 if len(threads) >= MAX_THREAD_NUM:
                     LOGGER.warning("max thread !")
                     continue
-                th = threading.Thread(target=process_task, args=(t.params, t.task_type, t.id, t.user, t.chat_type,
-                                                                    t.chat_id, t.message_id))
+                th = threading.Thread(target=process_task, args=(t.params, t.task_type, t.id, t.user_id, t.chat_type,
+                                                                    t.chat_id, t.user_nick))
                 th.start()
                 threads.append(th)
             for i in range(len(threads) - 1):
