@@ -36,6 +36,16 @@ def get_random_string(length):
     random_string = ''.join(random.choice(possible_characters) for i in range(length))
     return random_string
 
+@error_cap()
+def send_text_msg(msg, user_id, chat_type, chat_id):
+    if dingding_api.token_is_expired:
+        result = dingding_api.get_assess_token()
+        dingding_api.set_access_token(result["accessToken"], time.time() + 7100)
+    if chat_type == "1":
+        dingding_api.batch_send_message([user_id],json.dumps({"content": msg}), msg_type="sampleText")
+    else:
+        dingding_api.send_group_message(chat_id, json.dumps({"content": msg}), msg_type="sampleText")
+
 
 
 def process_task(task_params, task_type, task_id, user_id, chat_type, chat_id, user_nick):
@@ -56,20 +66,16 @@ def process_task(task_params, task_type, task_id, user_id, chat_type, chat_id, u
         while True:
             if time.time() - start_time > timeout:
                 Task.update(status="error", desc="timeout").where(Task.id == task_id).execute()
-                if chat_type == "1":
-                    dingding_api.batch_send_message([user_id],json.dumps({"content": "任务超时！"}), msg_type="sampleText")
-                else:
-                    dingding_api.send_group_message(chat_id, json.dumps({"content": "任务超时！"}), msg_type="sampleText")
+                send_text_msg("timeout", user_id, chat_type, chat_id)
                 break
             result = api.query_task(mj_task_id)
             status = result["data"]["status"]
             Task.update(status=status).where(Task.id == task_id).execute()
             if result["data"]["status"] == "finished":
                 if dingding_api.token_is_expired:
-                    result = dingding_api.get_assess_token()
-                    dingding_api.set_access_token(result["accessToken"], time.time() + 7100)
+                    access_token_result = dingding_api.get_assess_token()
+                    dingding_api.set_access_token(access_token_result["accessToken"], time.time() + 7100)
                 image_url = result["data"]["image_url"]
-                
                 if task_type in ["upscale", "variation"]:
                     if chat_type == "1":
                         dingding_api.batch_send_message([user_id],json.dumps({"photoURL": image_url}))
@@ -87,14 +93,14 @@ def process_task(task_params, task_type, task_id, user_id, chat_type, chat_id, u
                         dingding_api.send_card_message(template_id, chat_id, track_id, CACHE_INFO["CALL_BACK_ID"], {"image": image_url, "task_id": mj_task_id}, {}, json.dumps({user_id: user_nick}), chat_type=chat_type)
                 break
             if result["data"]["status"] == "error":
-                msg = result.get("msg", "")
+                msg = result.get("msg", "error")
                 Task.update(status="error", desc=msg).where(Task.id == task_id).execute()
-                send_text_msg(msg, user_id)
+                send_text_msg(msg, user_id, chat_type, chat_id)
                 break
             time.sleep(1)
     except Exception as e:
         Task.update(status="error", desc=str(e)).where(Task.id == task_id).execute()
-        send_text_msg(str(e), user_id)
+        send_text_msg(str(e), user_id, chat_type, chat_id)
         LOGGER.error("run error", exc_info=True)
 
 
