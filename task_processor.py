@@ -20,7 +20,7 @@ from utils.func_utils import error_cap
 threads = []
 
 
-api = DingDingAPI(os.getenv["DINGTALK_APPKEY"], os.getenv["DINGTALK_APPSECRET"], os.getenv["DINGTALK_ROBOT_CODE"])
+api = DingDingAPI(os.getenv("DINGTALK_APPKEY"), os.getenv("DINGTALK_APPSECRET"), os.getenv("DINGTALK_ROBOT_CODE"))
 template_id = os.getenv("DINGTALK_TEMPLATE_ID")
 server_ip = os.getenv("SEVER_IP")
 MAX_THREAD_NUM = int(os.getenv("MAX_THREAD_NUM", 5))
@@ -63,7 +63,10 @@ def process_task(task_params, task_type, task_id, user_id, chat_type, chat_id, u
         while True:
             if time.time() - start_time > timeout:
                 Task.update(status="error", desc="timeout").where(Task.id == task_id).execute()
-                send_text_msg("timeout", user_id)
+                if chat_type == "1":
+                    api.batch_send_message([user_id],json.dumps({"content": "任务超时！"}), msg_type="sampleText")
+                else:
+                    api.send_group_message(chat_id, json.dumps({"content": "任务超时！"}), msg_type="sampleText")
                 break
             result = api.query_task(mj_task_id)
             status = result["data"]["status"]

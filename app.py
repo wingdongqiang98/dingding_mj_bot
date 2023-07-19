@@ -30,7 +30,7 @@ def after_request(response):
 # management, we list them this way:
 FLASKDB_EXCLUDED_ROUTES = ('logout',)
 
-dingding_api = DingDingAPI(os.getenv["DINGTALK_APPKEY"], os.getenv["DINGTALK_APPSECRET"], os.getenv["DINGTALK_ROBOT_CODE"])
+dingding_api = DingDingAPI(os.getenv("DINGTALK_APPKEY"), os.getenv("DINGTALK_APPSECRET"), os.getenv("DINGTALK_ROBOT_CODE"))
 
 @app.route("/message", methods=["POST"])
 def message_handler():
