@@ -99,7 +99,7 @@ def card_message():
         else:
             return "BAD REQUEST", 400
         if dingding_api.token_is_expired:
-            result = dingding_api.get_tenant_access_token()
+            result = dingding_api.get_assess_token()
             dingding_api.set_access_token(result["accessToken"], time.time() + 7100)
         if parent_task.chat_type == "1":
             dingding_api.batch_send_message([user_id],json.dumps({"content": "图片处理中，请稍后。。。"}), msg_type="sampleText")
