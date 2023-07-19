@@ -91,6 +91,8 @@ def process_task(task_params, task_type, task_id, user_id, chat_type, chat_id, u
                         dingding_api.send_card_message(template_id, chat_id, track_id, CACHE_INFO["CALL_BACK_ID"], {"image": image_url, "task_id": mj_task_id}, {}, json.dumps({user_id: user_nick}), chat_type=chat_type, receive_user_ids=[user_id])
                     else:
                         dingding_api.send_card_message(template_id, chat_id, track_id, CACHE_INFO["CALL_BACK_ID"], {"image": image_url, "task_id": mj_task_id}, {}, json.dumps({user_id: user_nick}), chat_type=chat_type)
+
+                    Task.update(track_id=track_id).where(Task.id == task_id).execute()
                 break
             if result["data"]["status"] == "error":
                 msg = result.get("msg", "error")
