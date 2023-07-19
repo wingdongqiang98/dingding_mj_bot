@@ -47,7 +47,7 @@ def message_handler():
         message_id = request.json["msgId"]
         content = request.json["text"]["content"]
         if chat_type != "1" and not content.startswith("@"):
-            LOGGER.warning("not get @ from message")
+            LOGGER.warning("not get @ from message %s", request.json["text"])
             return jsonify({})
         if chat_type != "1":
             content = content.split(" ", 1)[-1]

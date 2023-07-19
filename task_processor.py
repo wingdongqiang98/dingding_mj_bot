@@ -114,11 +114,14 @@ def delete_old_data():
 
 
 def process_tasks():
-    init_env()
+    init_env("dingding_bot_process.log")
     time.sleep(10)
+    next_time = time.time() - 100
     while True:
         try:
-            delete_old_data()
+            if next_time < time.time():
+                delete_old_data()
+                next_time = time.time() + 3600
             tasks = Task.select().where(Task.status == "init", Task.retry_count <= 3)
             for t in tasks:
                 if len(threads) >= MAX_THREAD_NUM:
