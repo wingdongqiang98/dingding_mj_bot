@@ -55,7 +55,7 @@ def message_handler():
         Task.create(user_id=user_id, user_nick=user_nickname, chat_id=chat_id, message_id=message_id, chat_type=chat_type, params=params, status="init",
                 task_type="imagine")
         if dingding_api.token_is_expired:
-            result = dingding_api.get_tenant_access_token()
+            result = dingding_api.get_assess_token()
             dingding_api.set_access_token(result["accessToken"], time.time() + 7100)
         if chat_type == "1":
             dingding_api.batch_send_message([user_id],json.dumps({"content": "图片处理中，请稍后。。。"}), msg_type="sampleText")

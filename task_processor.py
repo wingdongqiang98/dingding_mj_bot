@@ -73,7 +73,7 @@ def process_task(task_params, task_type, task_id, user_id, chat_type, chat_id, u
             Task.update(status=status).where(Task.id == task_id).execute()
             if result["data"]["status"] == "finished":
                 if api.token_is_expired:
-                    result = api.get_tenant_access_token()
+                    result = api.get_assess_token()
                     api.set_access_token(result["accessToken"], time.time() + 7100)
                 image_url = result["data"]["image_url"]
                 
