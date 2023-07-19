@@ -1,0 +1,7 @@
+requests
+Flask
+pycryptodome
+python-dotenv
+peewee
+gunicorn
+pymysql
